@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PIP — Ghost AI</title>
+  <style>
+    :root {
+      --bg-deep: #030712;
+      --bg-mid: #07132b;
+      --glass-panel: rgba(11, 23, 48, 0.62);
+      --glass-soft: rgba(15, 31, 64, 0.52);
+      --glass-border: rgba(125, 211, 252, 0.18);
+      --glass-highlight: rgba(255, 255, 255, 0.09);
+      --text-primary: #f1f6ff;
+      --text-secondary: #93a8cf;
+      --glow-blue: #3b82f6;
+      --glow-cyan: #38bdf8;
+      --glow-indigo: #6366f1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 15%, rgba(59, 130, 246, 0.28), transparent 45%),
+        radial-gradient(circle at 82% 22%, rgba(56, 189, 248, 0.22), transparent 45%),
+        radial-gradient(circle at 50% 92%, rgba(99, 102, 241, 0.18), transparent 55%),
+        linear-gradient(155deg, var(--bg-deep), var(--bg-mid));
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    /* Ambient floating aura behind glass panel */
+    .ambient-orb {
+      position: fixed;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      filter: blur(75px);
+      pointer-events: none;
+      z-index: 0;
+      animation: orbDrift 9s ease-in-out infinite alternate;
+    }
+
+    .orb-one {
+      top: 8%;
+      left: 12%;
+      background: rgba(56, 189, 248, 0.22);
+    }
+
+    .orb-two {
+      bottom: 10%;
+      right: 12%;
+      background: rgba(59, 130, 246, 0.24);
+      animation-delay: -4s;
+    }
+
+    @keyframes orbDrift {
+      0% { transform: translate(0px, 0px) scale(1); }
+      100% { transform: translate(24px, -18px) scale(1.12); }
+    }
+
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 760px;
+      height: 91vh;
+      background: var(--glass-panel);
+      backdrop-filter: blur(26px) saturate(140%);
+      -webkit-backdrop-filter: blur(26px) saturate(140%);
+      border: 1px solid var(--glass-border);
+      border-radius: 28px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.72),
+        0 0 40px rgba(56, 189, 248, 0.08),
+        inset 0 1px 0 var(--glass-highlight);
+    }
+
+    .top-bar {
+      padding: 15px 22px;
+      border-bottom: 1px solid rgba(125, 211, 252, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: linear-gradient(180deg, rgba(16, 33, 68, 0.55), rgba(8, 17, 38, 0.35));
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .pip-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(56, 189, 248, 0.24), rgba(59, 130, 246, 0.12));
+      border: 1px solid rgba(125, 211, 252, 0.35);
+      display: grid;
+      place-items: center;
+      box-shadow:
+        0 0 24px rgba(56, 189, 248, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .pip-badge.thinking {
+      border-color: rgba(125, 211, 252, 0.75);
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.55);
+    }
+
+    .pip-badge.happy {
+      border-color: rgba(165, 243, 252, 0.9);
+      box-shadow: 0 0 32px rgba(56, 189, 248, 0.75);
+    }
+
+    .ghost-float {
+      animation: floatSway 2.7s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .pip-badge.thinking .ghost-float {
+      animation: floatExcited 0.85s ease-in-out infinite;
+    }
+
+    .pip-badge.happy .ghost-float {
+      animation: happyHop 0.68s ease-in-out 2;
+    }
+
+    @keyframes floatSway {
+      0%, 100% {
+        transform: translateY(0px) rotate(-3.5deg);
+      }
+      50% {
+        transform: translateY(-4.5px) rotate(4deg);
+      }
+    }
+
+    @keyframes floatExcited {
+      0%, 100% {
+        transform: translateY(-2px) rotate(-7.5deg) scale(1.05);
+      }
+      50% {
+        transform: translateY(-6.5px) rotate(7.5deg) scale(1.09);
+      }
+    }
+
+    @keyframes happyHop {
+      0%, 100% {
+        transform: translateY(0px) rotate(0deg) scale(1);
+      }
+      40% {
+        transform: translateY(-6.5px) rotate(-5deg) scale(1.12);
+      }
+      75% {
+        transform: translateY(-2px) rotate(5deg) scale(1.06);
+      }
+    }
+
+    .eye-normal {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: blinkLoop 4.2s infinite;
+    }
+
+    .eye-smile,
+    .mouth-smile {
+      display: none;
+    }
+
+    .pip-badge.happy .eye-normal,
+    .msg-ghost.happy .eye-normal {
+      display: none;
+    }
+
+    .pip-badge.happy .eye-smile,
+    .pip-badge.happy .mouth-smile,
+    .msg-ghost.happy .eye-smile,
+    .msg-ghost.happy .mouth-smile {
+      display: block;
+    }
+
+    @keyframes blinkLoop {
+      0%, 91%, 100% {
+        transform: scaleY(1);
+      }
+      94%, 97% {
+        transform: scaleY(0.08);
+      }
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-name {
+      font-size: 1.08rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+    }
+
+    .pill-tag {
+      font-size: 0.68rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(125, 211, 252, 0.25);
+      color: #bae6fd;
+    }
+
+    .status-text {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    select, button, input {
+      background: var(--glass-soft);
+      color: var(--text-primary);
+      border: 1px solid rgba(125, 211, 252, 0.2);
+      border-radius: 13px;
+      padding: 8px 13px;
+      font-size: 0.85rem;
+      outline: none;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
+    }
+
+    select:focus, button:focus, input:focus {
+      border-color: var(--glow-cyan);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    button:hover {
+      background: rgba(30, 64, 124, 0.68);
+      border-color: rgba(125, 211, 252, 0.38);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .chat-stream {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .chat-stream::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-stream::-webkit-scrollbar-thumb {
+      background: rgba(147, 168, 207, 0.22);
+      border-radius: 999px;
+    }
+
+    .msg-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      animation: msgEnter 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .msg-row.user {
+      justify-content: flex-end;
+    }
+
+    .msg-ghost {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(125, 211, 252, 0.25);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .msg-ghost.floating {
+      animation: floatSway 2.3s ease-in-out infinite;
+    }
+
+    .msg-ghost.happy {
+      animation: happyHop 0.68s ease-in-out 2;
+    }
+
+    .bubble {
+      max-width: 78%;
+      padding: 13px 16px;
+      border-radius: 18px;
+      font-size: 0.92rem;
+      line-height: 1.58;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg-row.user .bubble {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.92), rgba(2, 132, 199, 0.92));
+      border: 1px solid rgba(186, 230, 253, 0.28);
+      color: #ffffff;
+      border-bottom-right-radius: 5px;
+      box-shadow: 0 10px 28px rgba(37, 99, 235, 0.28);
+    }
+
+    .msg-row.bot .bubble {
+      background: rgba(13, 27, 56, 0.72);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      border-bottom-left-radius: 5px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .prompts-row {
+      padding: 0 22px 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .prompt-chip {
+      font-size: 0.78rem;
+      padding: 6px 13px;
+      border-radius: 999px;
+      background: rgba(13, 27, 56, 0.62);
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      color: var(--text-secondary);
+    }
+
+    .prompt-chip:hover {
+      color: var(--text-primary);
+      border-color: rgba(56, 189, 248, 0.48);
+      background: rgba(23, 47, 92, 0.72);
+    }
+
+    .input-dock {
+      padding: 13px 22px 19px;
+      display: flex;
+      gap: 10px;
+      background: rgba(6, 14, 32, 0.48);
+      border-top: 1px solid rgba(125, 211, 252, 0.12);
+    }
+
+    .input-dock input {
+      flex: 1;
+      padding: 12px 16px;
+      background: rgba(8, 19, 42, 0.78);
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, #2563eb, #0284c7);
+      border: 1px solid rgba(186, 230, 253, 0.35);
+      padding: 0 22px;
+      font-weight: 600;
+      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35);
+    }
+
+    .send-btn:hover {
+      background: linear-gradient(135deg, #3b82f6, #0ea5e9);
+    }
+
+    @keyframes msgEnter {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-orb orb-one" aria-hidden="true"></div>
+  <div class="ambient-orb orb-two" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="brand-group">
+        <div class="pip-badge happy" id="pipHeaderBadge" aria-hidden="true">
+          <svg class="ghost-float" width="30" height="30" viewBox="0 0 32 32" fill="none">
+            <path
+              d="M16 4C9.9 4 6 8.3 6 14.5V26.5L9.8 24.2L13.2 26.7L16 24.4L18.8 26.7L22.2 24.2L26 26.5V14.5C26 8.3 22.1 4 16 4Z"
+              fill="#f1f6ff"
+            />
+            <ellipse class="eye-normal" cx="12.5" cy="14" rx="1.8" ry="2.3" fill="#07132b" />
+            <ellipse class="eye-normal" cx="19.5" cy="14" rx="1.8" ry="2.3" fill="#07132b" />
+            <path class="eye-smile" d="M10.8 14.4C11.4 12.7 13.6 12.7 14.2 14.4" stroke="#07132b" stroke-width="2" stroke-linecap="round" />
+            <path class="eye-smile" d="M17.8 14.4C18.4 12.7 20.6 12.7 21.2 14.4" stroke="#07132b" stroke-width="2" stroke-linecap="round" />
+            <path class="mouth-smile" d="M13.2 18C14.3 19.7 17.7 19.7 18.8 18" stroke="#07132b" stroke-width="1.9" stroke-linecap="round" />
+          </svg>
+        </div>
+
+        <div>
+          <div class="title-row">
+            <span class="brand-name">PIP</span>
+            <span class="pill-tag">GHOST AI</span>
+          </div>
+          <div class="status-text" id="pipStatus">Floating &amp; smiling</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <select id="modeSelect" title="Response Style">
+          <option value="Chill">Chill</option>
+          <option value="Builder">Builder</option>
+          <option value="Roast">Roast</option>
+          <option value="Mentor">Mentor</option>
+        </select>
+        <button type="button" id="resetChatBtn">Clear</button>
+      </div>
+    </header>
+
+    <main class="chat-stream" id="chatStream">
+      <div class="msg-row bot">
+        <div class="msg-ghost floating happy" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
+            <path
+              d="M16 4C9.9 4 6 8.3 6 14.5V26.5L9.8 24.2L13.2 26.7L16 24.4L18.8 26.7L22.2 24.2L26 26.5V14.5C26 8.3 22.1 4 16 4Z"
+              fill="#f1f6ff"
+            />
+            <ellipse class="eye-normal" cx="12.5" cy="14" rx="1.8" ry="2.3" fill="#07132b" />
+            <ellipse class="eye-normal" cx="19.5" cy="14" rx="1.8" ry="2.3" fill="#07132b" />
+            <path class="eye-smile" d="M10.8 14.4C11.4 12.7 13.6 12.7 14.2 14.4" stroke="#07132b" stroke-width="2" stroke-linecap="round" />
+            <path class="eye-smile" d="M17.8 14.4C18.4 12.7 20.6 12.7 21.2 14.4" stroke="#07132b" stroke-width="2" stroke-linecap="round" />
+            <path class="mouth-smile" d="M13.2 18C14.3 19.7 17.7 19.7 18.8 18" stroke="#07132b" stroke-width="1.9" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="bubble">Hey! I'm PIP. Floating around in the dark glass—what are we building or exploring today?</div>
+      </div>
+    </main>
+
+    <div class="prompts-row">
+      <button type="button" class="prompt-chip" data-prompt="Give me 3 sharp one-line hooks for a new product">3 One-Line Hooks</button>
+      <button type="button" class="prompt-chip" data-prompt="Roast my startup idea playfully in 3 short lines">Playful Idea Roast</button>
+      <button type="button" class="prompt-chip" data-prompt="Give me a clean 3-step launch checklist">3-Step Checklist</button>
+    </div>
+
+    <form class="input-dock" id="chatForm">
+      <input id="userMessageInput" type="text" placeholder="Message PIP..." autocomplete="off" />
+      <button type="submit" class="send-btn">Send</button>
+    </form>
+  </div>
+
+  <script>
+    // Cloudflare Worker URL கிடைச்சதும் கீழ இருக்கிற லிங்கை மாத்துங்க
+    const WORKER_URL = "https://YOUR_WORKER_NAME.workers.dev";
+
+    const chatStream = document.getElementById("chatStream");
+    const chatForm = document.getElementById("chatForm");
+    const userMessageInput = document.getElementById("userMessageInput");
+    const modeSelect = document.getElementById("modeSelect");
+    const resetChatBtn = document.getElementById("resetChatBtn");
+    const pipHeaderBadge = document.getElementById("pipHeaderBadge");
+    const pipStatus = document.getElementById("pipStatus");
+
+    const PIP_GHOST_MARKUP = `
+      <svg width="21" height="21" viewBox="0 0 32 32" fill="none">
+        <path
+          d="M16 4C9.9 4 6 8.3 6 14.5V26.5L9.8 24.2L13.2 26.7L16 24.4L18.8 26.7L22.2 24.2L26 26.5V14.5C26 8.3 22.1 4 16 4Z"
+          fill="#f1f6ff"
+        />
+        <ellipse class="eye-normal" cx="12.5" cy="14" rx="1.8" ry="2.3" fill="#07132b" />
+        <ellipse class="eye-normal" cx="19.5" cy="14" rx="1.8" ry="2.3" fill="#07132b" />
+        <path class="eye-smile" d="M10.8 14.4C11.4 12.7 13.6 12.7 14.2 14.4" stroke="#07132b" stroke-width="2" stroke-linecap="round" />
+        <path class="eye-smile" d="M17.8 14.4C18.4 12.7 20.6 12.7 21.2 14.4" stroke="#07132b" stroke-width="2" stroke-linecap="round" />
+        <path class="mouth-smile" d="M13.2 18C14.3 19.7 17.7 19.7 18.8 18" stroke="#07132b" stroke-width="1.9" stroke-linecap="round" />
+      </svg>
+    `;
+
+    /** @type {number | undefined} */
+    let happyResetTimer;
+
+    /** @param {"idle" | "thinking" | "happy"} state */
+    function setPipState(state) {
+      if (!pipHeaderBadge) return;
+      if (happyResetTimer) {
+        clearTimeout(happyResetTimer);
+      }
+      pipHeaderBadge.classList.remove("thinking", "happy");
+
+      if (state === "thinking") {
+        pipHeaderBadge.classList.add("thinking");
+        if (pipStatus) pipStatus.textContent = "PIP is thinking...";
+      } else if (state === "happy") {
+        pipHeaderBadge.classList.add("happy");
+        if (pipStatus) pipStatus.textContent = "PIP is smiling!";
+        happyResetTimer = window.setTimeout(() => {
+          pipHeaderBadge.classList.remove("happy");
+          if (pipStatus) pipStatus.textContent = "Floating & smiling";
+        }, 1800);
+      } else {
+        if (pipStatus) pipStatus.textContent = "Floating & smiling";
+      }
+    }
+
+    /** @param {string} text @param {"user" | "bot"} role @param {boolean} [floating] */
+    function addMessage(text, role, floating = false) {
+      const row = document.createElement("div");
+      row.className = `msg-row ${role}`;
+
+      /** @type {HTMLDivElement | null} */
+      let ghostEl = null;
+      if (role === "bot") {
+        ghostEl = document.createElement("div");
+        ghostEl.className = floating ? "msg-ghost floating" : "msg-ghost";
+        ghostEl.innerHTML = PIP_GHOST_MARKUP;
+        row.appendChild(ghostEl);
+      }
+
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      row.appendChild(bubble);
+
+      chatStream?.appendChild(row);
+      if (chatStream) {
+        chatStream.scrollTop = chatStream.scrollHeight;
+      }
+      return { row, bubble, ghostEl };
+    }
+
+    resetChatBtn?.addEventListener("click", () => {
+      if (chatStream) {
+        chatStream.innerHTML = "";
+        const fresh = addMessage("Fresh slate! PIP is floating and ready.", "bot", true);
+        fresh.ghostEl?.classList.add("happy");
+        setPipState("happy");
+      }
+    });
+
+    document.querySelectorAll(".prompt-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        const text = chip.getAttribute("data-prompt") || "";
+        if (text) sendToPip(text);
+      });
+    });
+
+    chatForm?.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!(userMessageInput instanceof HTMLInputElement)) return;
+      const text = userMessageInput.value.trim();
+      if (!text) return;
+      userMessageInput.value = "";
+      sendToPip(text);
+    });
+
+    /** @param {string} mode */
+    function buildSystemPrompt(mode) {
+      if (mode === "Builder") {
+        return "You are PIP, a sharp product builder ghost. Give concise, practical execution steps and clear trade-offs.";
+      }
+      if (mode === "Roast") {
+        return "You are PIP, witty and playfully roasting ideas in a clever, friendly, non-cruel way. Keep replies tight.";
+      }
+      if (mode === "Mentor") {
+        return "You are PIP, a calm, structured mentor. Explain clearly with actionable next steps.";
+      }
+      return "You are PIP, a friendly, sharp, floating conversational ghost AI.";
+    }
+
+    /** @param {string} text */
+    async function sendToPip(text) {
+      if (!WORKER_URL || WORKER_URL.includes("YOUR_WORKER_NAME")) {
+        addMessage("Cloudflare Worker URL இன்னும் செட் பண்ணல. WORKER_URL-ஐ மாத்துங்க.", "bot");
+        return;
+      }
+
+      addMessage(text, "user");
+      const pending = addMessage("Thinking...", "bot", true);
+      setPipState("thinking");
+
+      const mode = modeSelect instanceof HTMLSelectElement ? modeSelect.value : "Chill";
+      const systemInstruction = buildSystemPrompt(mode);
+
+      try {
+        const res = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text,
+            systemInstruction
+          })
+        });
+
+        const data = await res.json();
+        pending.ghostEl?.classList.remove("floating");
+
+        if (!res.ok) {
+          if (res.status === 429) {
+            pending.bubble.textContent =
+              data.error || "Usage limit reached. Please wait a few minutes and try again.";
+          } else {
+            pending.bubble.textContent =
+              data.error || "Request failed. Please wait and try again.";
+          }
+          setPipState("idle");
+          return;
+        }
+
+        pending.bubble.textContent = data.reply || "No response received.";
+        pending.ghostEl?.classList.add("happy");
+        setPipState("happy");
+      } catch (err) {
+        pending.ghostEl?.classList.remove("floating");
+        const msg = err instanceof Error ? err.message : String(err);
+        pending.bubble.textContent = `Network error: ${msg}`;
+        setPipState("idle");
+      }
+    }
+  </script>
+</body>
+</html>
